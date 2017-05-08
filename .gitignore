@@ -1,0 +1,8 @@
+﻿Logs/
+src/Logs/*
+Release/
+test/Out/*
+.vscode/
+*.bak
+OptimizationRules.library-ms
+OptimizationRules.tdl
