@@ -1,5 +1,8 @@
-﻿**Documentation**
+﻿[![Build status](https://ci.appveyor.com/api/projects/status/xiu5372vdbhwomko?svg=true)](https://ci.appveyor.com/project/LaurentDardenne/optimizationrules)
+
 PSScriptAnalyzer rules suggesting optimizations for loop statements 'For'.
+
+**Documentation**
 
 [Optimization rules](https://github.com/LaurentDardenne/OptimizationRules/tree/master/RuleDocumentation)
 
