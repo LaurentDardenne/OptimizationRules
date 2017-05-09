@@ -502,25 +502,34 @@ Task AfterInstall {
 ###############################################################################
 
 # Executes before the Publish task.
-Task BeforePublish -requiredVariables Projectname, OutDir, ModuleName, RepositoryName, Dev_PublishRepository {
-    if ( (-not [string]::IsNullOrWhiteSpace($Dev_PublishRepository)) -and ($RepositoryName -eq $Dev_PublishRepository ))
+Task BeforePublish -requiredVariables Projectname, OutDir, ModuleName, PublishRepository, Dev_PublishRepository {
+    $ManifestPath="$OutDir\$ModuleName\$ModuleName.psd1"
+    if ( (-not [string]::IsNullOrWhiteSpace($Dev_PublishRepository)) -and ($PublishRepository -eq $Dev_PublishRepository ))
     {
         #Increment  the module version for dev repository only
         Import-Module BuildHelpers
-        $SourceLocation=(Get-PSRepository -Name $RepositoryName).SourceLocation
+        $SourceLocation=(Get-PSRepository -Name $PublishRepository).SourceLocation
         "Get the latest version for '$ProjectName' in '$SourceLocation'"
         $Version = Get-NextNugetPackageVersion -Name $ProjectName -PackageSourceUrl $SourceLocation
 
-        $Path="$OutDir\$ModuleName\$ModuleName.psd1"
-        $ModuleVersion=(Test-ModuleManifest -path $Path).Version
+        $ModuleVersion=(Test-ModuleManifest -path $ManifestPath).Version
         # If no version exists, take the current version
         $isGreater=$Version -gt $ModuleVersion
-        "Update the module metadata '$OutDir\$ModuleName\$ModuleName.psd1' ? $isGreater "
+        "Update the module metadata '$ManifestPath' ? $isGreater "
         if ($isGreater)
         {
            "with the new version : $version"
-           Update-Metadata -Path "$OutDir\$ModuleName\$ModuleName.psd1"  -PropertyName ModuleVersion -Value $Version
+           Update-Metadata -Path $ManifestPath  -PropertyName ModuleVersion -Value $Version
         }
+    }
+    #si on publie sur :
+    #     PSGallery, la clé n'est pas nécessaire, c'est le même repository
+    #     Myget, la clé est nécessaire, car ce n'est pas le même repository
+    if ($PublishRepository -ne 'PSGallery')
+    { 
+       #todo bug:
+       #https://windowsserver.uservoice.com/forums/301869-powershell/suggestions/19210978-update-modulemanifest-externalmoduledependencies
+       Update-ModuleManifest -path $ManifestPath -ExternalModuleDependencies 'PSScriptAnalyzer','PSScriptAnalyzer' 
     }
 }
 
