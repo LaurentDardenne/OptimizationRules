@@ -71,16 +71,16 @@ RequiredModules=@(
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = @('Measure*')
+FunctionsToExport = @('Measure-OptimizeForStatement')
 
 # Cmdlets to export from this module
-CmdletsToExport = '*'
+#CmdletsToExport = '*'
 
 # Variables to export from this module
-VariablesToExport = '*'
+#VariablesToExport = '*'
 
 # Aliases to export from this module
-AliasesToExport = '*'
+#AliasesToExport = '*'
 
 # List of all modules packaged with this module
 # ModuleList = @()

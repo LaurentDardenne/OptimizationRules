@@ -157,5 +157,4 @@ Function OnRemoveParameterSetRules {
 $MyInvocation.MyCommand.ScriptBlock.Module.OnRemove = { OnRemoveParameterSetRules }
 #<UNDEF %DEBUG%>   
 
-#Export-ModuleMember -Function Measure-OptimizeForStatement
    
