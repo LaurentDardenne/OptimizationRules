@@ -515,7 +515,7 @@ Task BeforePublish -requiredVariables Projectname, OutDir, ModuleName, PublishRe
         $ModuleVersion=(Test-ModuleManifest -path $ManifestPath).Version
         # If no version exists, take the current version
         $isGreater=$Version -gt $ModuleVersion
-        "Update the module metadata '$ManifestPath' ? $isGreater "
+        "Update the module metadata '$ManifestPath' [$ModuleVersion] ? $isGreater "
         if ($isGreater)
         {
            "with the new version : $version"
