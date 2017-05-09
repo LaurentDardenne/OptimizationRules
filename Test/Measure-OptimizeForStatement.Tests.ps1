@@ -1,19 +1,6 @@
-﻿$global:here = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-if (Test-Path env:APPVEYOR_BUILD_FOLDER)
-{ 
-  
-  $M=Import-Module  "..\Release\OptimizationRules\OptimizationRules.psd1" -Pass 
-  
-  $Path="$env:APPVEYOR_BUILD_FOLDER\Modules\OptimizationRules\Test"
-  $CustomRulePath="$PSScriptAnalyzerRulesDelivery\OptimizationRules.psm1"
-}
-else
-{ 
-  $M=Import-module ..\Release\OptimizationRules\OptimizationRules.psd1 -Pass
-  $Path="."
-  $CustomRulePath="..\Release\OptimizationRules\OptimizationRules.psm1"  
-}
+﻿$Path=$PSScriptRoot
+$CustomRulePath="..\Release\OptimizationRules\OptimizationRules.psm1"  
+$M=Import-module ..\Release\OptimizationRules\OptimizationRules.psd1 -Pass
 
 $testCasesWithOut = @(
 @{Name='SuppressMessageBinaryExpressionAst.ps1'};
