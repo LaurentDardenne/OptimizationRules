@@ -3,16 +3,16 @@
 if (Test-Path env:APPVEYOR_BUILD_FOLDER)
 { 
   
-  $M=Import-Module  "..\Release\Template\OptimizationRules.psd1" -Pass 
+  $M=Import-Module  "..\Release\OptimizationRules\OptimizationRules.psd1" -Pass 
   
   $Path="$env:APPVEYOR_BUILD_FOLDER\Modules\OptimizationRules\Test"
   $CustomRulePath="$PSScriptAnalyzerRulesDelivery\OptimizationRules.psm1"
 }
 else
 { 
-  $M=Import-module ..\OptimizationRules.psd1 -Pass
+  $M=Import-module ..\Release\OptimizationRules\OptimizationRules.psd1 -Pass
   $Path="."
-  $CustomRulePath="..\OptimizationRules.psm1"  
+  $CustomRulePath="..\Release\OptimizationRules\OptimizationRules.psm1"  
 }
 
 $testCasesWithOut = @(

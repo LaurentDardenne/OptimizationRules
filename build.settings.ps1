@@ -137,10 +137,10 @@ function Test-BOMFile{
 Properties {
     # ----------------------- Basic properties --------------------------------
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $ProjectName= 'Template'
+    $ProjectName= 'OptimizationRules'
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $ProjectUrl= 'https://github.com/LaurentDardenne/Template.git'
+    $ProjectUrl= 'https://github.com/LaurentDardenne/OptimizationRules.git'
 
     # The root directories for the module's docs, src and test.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
@@ -176,7 +176,7 @@ Properties {
     # Typically you wouldn't put any file under the src dir unless the file was going to ship with
     # the module. However, if there are such files, add their $SrcRootDir relative paths to the exclude list.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $Exclude = @('Template.psm1','Template.psd1','*.bak')
+    $Exclude = @('OptimizationRules.psm1','OptimizationRules.psd1','*.bak')
 
     # ------------------ Script analysis properties ---------------------------
 
@@ -204,7 +204,7 @@ Properties {
     #MeasureLocalizedData
      #Full path of the module to control
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $LocalizedDataModule="$SrcRootDir\Template.psm1"
+    $LocalizedDataModule="$SrcRootDir\$ModuleName.psm1"
 
      #Full path of the function to control. If $null is specified only the primary module is analyzed.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
@@ -341,7 +341,7 @@ Task RemoveConditionnal -requiredVariables BuildConfiguration, ModuleOutDir{
    $ModuleOutDir="$OutDir\$ModuleName"
 
    Write-Verbose "Build with '$BuildConfiguration'"
-   Get-ChildItem  "$SrcRootDir\Template.psm1","$SrcRootDir\Template.psd1"|
+   Get-ChildItem  "$SrcRootDir\$ModuleName.psm1","$SrcRootDir\$ModuleName.psd1"|
     Foreach-Object {
       $Source=$_
       $TempFileName="$TempDirectory\$($Source.Name)"
