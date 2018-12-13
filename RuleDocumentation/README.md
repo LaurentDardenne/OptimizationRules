@@ -2,4 +2,4 @@
 
 | Rule | Severity |
 |------|----------------------------------|
-|[ForStatementCanBeImproved](./ForStatementCanBeImproved.md) | Information |
+|[Measure-OptimizeForStatementd](./Measure-OptimizeForStatement.md) | Information |

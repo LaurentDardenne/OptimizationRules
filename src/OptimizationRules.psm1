@@ -15,7 +15,6 @@
   }
   &$InitializeLogging @Params
   #<UNDEF %DEBUG%>   
-
 Function NewCorrectionExtent{
  param ($Extent,$Text,$Description)
 
@@ -25,7 +24,7 @@ Function NewCorrectionExtent{
   $Extent.EndLineNumber,
   $Extent.StartColumnNumber,
   $Extent.EndColumnNumber, 
-   #Texte de la correction lié à la régle
+   #The text that will replace the text bounded by the Line/Column number properties.
   $Text, 
     #Nom du fichier concerné
   $Extent.File,                
@@ -43,7 +42,7 @@ Function NewDiagnosticRecord{
     $RulesMsg.I_ForStatementCanBeImproved,
     $Extent,
      #RuleName
-    'ForStatementCanBeImproved',
+    'Measure-OptimizeForStatement',
     'Information',
      #ScriptPath
     $Extent.File,
@@ -52,7 +51,13 @@ Function NewDiagnosticRecord{
     $Correction
  )
 }
- 
+
+Function NewDiagnosticRecordWithCorrection{
+  param ($Ast,$Text)
+  $Correction=NewCorrectionExtent -Extent $Ast.Extent -Text $Text -Description $RulesMsg.CorrectionDescription
+  NewDiagnosticRecord $ForStatementAst $Correction 
+}
+
 <#
 .SYNOPSIS
   Informs about the for loop statement that may be improved.
@@ -69,7 +74,7 @@ Function NewDiagnosticRecord{
   [System.Management.Automation.Language.ForStatementAst]
   
 .OUTPUTS
-   [Microsoft.Windows.Powershell.ScriptAnalyzer.Generic.DiagnosticRecord[]]
+  [Microsoft.Windows.Powershell.ScriptAnalyzer.Generic.DiagnosticRecord[]]
 #>
 Function Measure-OptimizeForStatement{
 
@@ -84,18 +89,17 @@ Function Measure-OptimizeForStatement{
  )
 
 process { 
- $DebugLogger.PSDebug("Check ForStatement") #<%REMOVE%>
-
+  $DebugLogger.PSDebug("Check ForStatement") #<%REMOVE%>
   try
   {
-      #Analyse une instruction For()
-      #On  ne traite que la propriété Condition
+      #Analyze a For () statement
+      #One only deals with Condition property
       #
-      #Seul les trois écritures suivantes sont prises en compte :
-      #   $i -lt $Range.Count
-      #   $i -lt $Range.Count-1
-      #   $i -lt ($Range.Count-1) 
-      #   $i -lt (-1+$Range.count) écriture possible mais n'est pas prise en compte  
+      #Only the following three writing  are taken into account:
+      # $ i -lt $ Range.Count
+      # $ i -lt $ Range.Count-1
+      # $ i -lt ($ Range.Count-1)
+      # $ i -lt (-1 + $ Range.count) possible write but not taken into account      
     if ($null -ne $ForStatementAst.Condition)
     {
       foreach ($Node in $ForStatementAst.Condition.PipelineElements)
@@ -111,13 +115,17 @@ process {
              $RightNodeType=$Expression.Right.GetType().Name
              $DebugLogger.PSDebug("`t -> switch $RightNodeType") #<%REMOVE%>
              switch ($RightNodeType) { 
-                 # cas : $I -le $Range.Count
-               'MemberExpressionAst'   { NewDiagnosticRecord $ForStatementAst }  
+                 # case : $I -le $Range.Count
+               'MemberExpressionAst'   { 
+                                         NewDiagnosticRecordWithCorrection -Ast $ForStatementAst -Text '$I -le $RangeCount'
+                                       }  
                                        
-                 # cas : $I -le $Range.Count-1
-               'BinaryExpressionAst'   { NewDiagnosticRecord $ForStatementAst }                     
+                 # case : $I -le $Range.Count-1
+               'BinaryExpressionAst'   { 
+                                         NewDiagnosticRecordWithCorrection -Ast $ForStatementAst -Text '$I -le $RangeCount-1'
+                                       }                     
                  
-                 # cas : $I -le ($Range.Count-1)
+                 # case : $I -le ($Range.Count-1)
                'ParenExpressionAst'   {   
                                         foreach ($RNode in $Expression.Right.Pipeline.PipelineElements)
                                         {
@@ -125,7 +133,9 @@ process {
                                             {
                                                $RExpression=$RNode.Expression
                                                if ($RExpression -is [System.Management.Automation.Language.BinaryExpressionAst])
-                                               { NewDiagnosticRecord $ForStatementAst } 
+                                               { 
+                                                 NewDiagnosticRecordWithCorrection -Ast $ForStatementAst -Text '$I -le ($RangeCount-1)'
+                                               } 
                                             }#CommandEx 
                                         }#Foreach
                                       } #ParenExpressionAst
@@ -143,18 +153,15 @@ process {
                                                                              $FunctionDefinitionAst
      $DebugLogger.PSFatal($_.Exception.Message,$_.Exception) #<%REMOVE%>
      $PSCmdlet.ThrowTerminatingError($ER) 
-  }       
+  } 
+  #<DEFINE %DEBUG%>
+   finally {
+     #Fix onRemove (PSSA issue)
+    $DebugLogger.PSDebug('Finally : Measure-OptimizeForStatement') #<%REMOVE%>
+    Stop-Log4Net $Script:lg4n_ModuleName
+   }  
+  #<UNDEF %DEBUG%>          
  }#process
 }#Measure-OptimizeForStatement
 
-
-#<DEFINE %DEBUG%> 
-Function OnRemoveParameterSetRules {
-  Stop-Log4Net $Script:lg4n_ModuleName
-}#OnRemoveParameterSetRules
- 
-# Section  Initialization
-$MyInvocation.MyCommand.ScriptBlock.Module.OnRemove = { OnRemoveParameterSetRules }
-#<UNDEF %DEBUG%>   
-
-   
+Export-ModuleMember -Function Measure-OptimizeForStatement
