@@ -1,9 +1,9 @@
 ﻿Import-LocalizedData -BindingVariable RulesMsg -Filename OptimizationRules.Resources.psd1 -ErrorAction Stop
-                                      
+
   #<DEFINE %DEBUG%>
   #bug PSScriptAnalyzer : https://github.com/PowerShell/PSScriptAnalyzer/issues/599
   Import-Module Log4Posh
-   
+
   $Script:lg4n_ModuleName=$MyInvocation.MyCommand.ScriptBlock.Module.Name
      #Récupère le code d'une fonction publique du module Log4Posh (Prérequis)
      #et l'exécute dans la portée du module
@@ -14,20 +14,20 @@
     DefaultLogFilePath = "$psScriptRoot\Logs\$Script:lg4n_ModuleName.log"
   }
   &$InitializeLogging @Params
-  #<UNDEF %DEBUG%>   
+  #<UNDEF %DEBUG%>
 Function NewCorrectionExtent{
  param ($Extent,$Text,$Description)
 
 [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.CorrectionExtent]::new(
     #Informations d’emplacement
-  $Extent.StartLineNumber, 
+  $Extent.StartLineNumber,
   $Extent.EndLineNumber,
   $Extent.StartColumnNumber,
-  $Extent.EndColumnNumber, 
+  $Extent.EndColumnNumber,
    #The text that will replace the text bounded by the Line/Column number properties.
-  $Text, 
+  $Text,
     #Nom du fichier concerné
-  $Extent.File,                
+  $Extent.File,
     #Description de la correction
   $Description
  )
@@ -49,7 +49,7 @@ Function NewDiagnosticRecord{
     'Information',
      #ScriptPath
     $Extent.File,
-     #RuleID 
+     #RuleID
     $null,
     $Correction
  )
@@ -58,7 +58,7 @@ Function NewDiagnosticRecord{
 Function NewDiagnosticRecordWithCorrection{
   param ($Ast,$Text)
   $Correction=NewCorrectionExtent -Extent $Ast.Extent -Text $Text -Description $RulesMsg.CorrectionDescription
-  NewDiagnosticRecord $ForStatementAst $Correction 
+  NewDiagnosticRecord $ForStatementAst $Correction
 }
 
 <#
@@ -72,10 +72,10 @@ Function NewDiagnosticRecordWithCorrection{
 
 .EXAMPLE
   Measure-OptimizeForStatement $ForStatementAst
-    
+
 .INPUTS
   [System.Management.Automation.Language.ForStatementAst]
-  
+
 .OUTPUTS
   [Microsoft.Windows.Powershell.ScriptAnalyzer.Generic.DiagnosticRecord[]]
 #>
@@ -91,7 +91,7 @@ Function Measure-OptimizeForStatement{
       $ForStatementAst
  )
 
-process { 
+process {
   $DebugLogger.PSDebug("Check ForStatement") #<%REMOVE%>
   try
   {
@@ -102,68 +102,68 @@ process {
       # $ i -lt $ Range.Count
       # $ i -lt $ Range.Count-1
       # $ i -lt ($ Range.Count-1)
-      # $ i -lt (-1 + $ Range.count) possible write but not taken into account      
+      # $ i -lt (-1 + $ Range.count) possible write but not taken into account
     if ($null -ne $ForStatementAst.Condition)
     {
       foreach ($Node in $ForStatementAst.Condition.PipelineElements)
       {
          if ( $Node -is [System.Management.Automation.Language.CommandExpressionAst] )
          {
-           
+
            $Expression=$Node.Expression
-           $DebugLogger.PSDebug("Found  Expression=$Expression") #<%REMOVE%> 
+           $DebugLogger.PSDebug("Found  Expression=$Expression") #<%REMOVE%>
            if ($Expression -is [System.Management.Automation.Language.BinaryExpressionAst])
-           {  
+           {
              $DebugLogger.PSDebug("Right=$($Expression.Right.gettype())") #<%REMOVE%>
              $RightNodeType=$Expression.Right.GetType().Name
              $DebugLogger.PSDebug("`t -> switch $RightNodeType") #<%REMOVE%>
-             switch ($RightNodeType) { 
+             switch ($RightNodeType) {
                  # case : $I -le $Range.Count
-               'MemberExpressionAst'   { 
+               'MemberExpressionAst'   {
                                          NewDiagnosticRecordWithCorrection -Ast $ForStatementAst -Text '$I -le $RangeCount'
-                                       }  
-                                       
+                                       }
+
                  # case : $I -le $Range.Count-1
-               'BinaryExpressionAst'   { 
+               'BinaryExpressionAst'   {
                                          NewDiagnosticRecordWithCorrection -Ast $ForStatementAst -Text '$I -le $RangeCount-1'
-                                       }                     
-                 
+                                       }
+
                  # case : $I -le ($Range.Count-1)
-               'ParenExpressionAst'   {   
+               'ParenExpressionAst'   {
                                         foreach ($RNode in $Expression.Right.Pipeline.PipelineElements)
                                         {
                                             if ( $RNode -is [System.Management.Automation.Language.CommandExpressionAst] )
                                             {
                                                $RExpression=$RNode.Expression
                                                if ($RExpression -is [System.Management.Automation.Language.BinaryExpressionAst])
-                                               { 
+                                               {
                                                  NewDiagnosticRecordWithCorrection -Ast $ForStatementAst -Text '$I -le ($RangeCount-1)'
-                                               } 
-                                            }#CommandEx 
+                                               }
+                                            }#CommandEx
                                         }#Foreach
                                       } #ParenExpressionAst
              }#switch
-           }#BinaryEx 
-         }#CommandEx      
+           }#BinaryEx
+         }#CommandEx
       }#Foreach
-    }#If condition    
+    }#If condition
   }
   catch
   {
-     $ER= New-Object -Typename System.Management.Automation.ErrorRecord -Argumentlist $_.Exception, 
-                                                                             "OptimizeForSatement-$($ForStatementAst.Extent.File)", 
+     $ER= New-Object -Typename System.Management.Automation.ErrorRecord -Argumentlist $_.Exception,
+                                                                             "OptimizeForSatement-$($ForStatementAst.Extent.File)",
                                                                              "NotSpecified",
                                                                              $FunctionDefinitionAst
      $DebugLogger.PSFatal($_.Exception.Message,$_.Exception) #<%REMOVE%>
-     $PSCmdlet.ThrowTerminatingError($ER) 
-  } 
+     $PSCmdlet.ThrowTerminatingError($ER)
+  }
   #<DEFINE %DEBUG%>
    finally {
      #Fix onRemove (PSSA issue)
     $DebugLogger.PSDebug('Finally : Measure-OptimizeForStatement') #<%REMOVE%>
     Stop-Log4Net $Script:lg4n_ModuleName
-   }  
-  #<UNDEF %DEBUG%>          
+   }
+  #<UNDEF %DEBUG%>
  }#process
 }#Measure-OptimizeForStatement
 
