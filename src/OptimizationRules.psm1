@@ -34,7 +34,10 @@ Function NewCorrectionExtent{
 }
 
 Function NewDiagnosticRecord{
- param ($Ast,$Correction=$null)
+ param (
+    $Ast,
+    [Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.CorrectionExtent[]] $Correction=$null
+ )
 
  $Extent=$Ast.Extent
 
